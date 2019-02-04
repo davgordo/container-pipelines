@@ -4,11 +4,11 @@ labels:
   template: basic-spring-boot
 metadata:
   annotations:
-    description: Application template for JWS applications built using a Jenkins Pipeline
+    description: Application template for Spring Boot applications built using a Jenkins Pipeline
     iconClass: icon-tomcat
     tags: java,spring
     version: 1.2.0
-  name: basic-sprint-boot
+  name: basic-spring-boot
 objects:
 - apiVersion: v1
   kind: Service
@@ -67,12 +67,7 @@ objects:
         name: ${APPLICATION_NAME}
       spec:
         containers:
-        - env:
-          - name: JWS_ADMIN_USERNAME
-            value: ${JWS_ADMIN_USERNAME}
-          - name: JWS_ADMIN_PASSWORD
-            value: ${JWS_ADMIN_PASSWORD}
-          image: ${APPLICATION_NAME}
+        - image: ${APPLICATION_NAME}
           imagePullPolicy: Always
           name: ${APPLICATION_NAME}
           ports:
@@ -121,7 +116,7 @@ parameters:
 - description: The name for the application.
   name: APPLICATION_NAME
   required: true
-  value: jws-app
+  value: basic-spring-boot
 - description: The namespace to deploy into
   name: NAMESPACE
   required: true

@@ -12,7 +12,7 @@ def version = ''
 
 openshift.withCluster() {
   env.NAMESPACE = openshift.project()
-  env.POMFILE = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/pom.xml" : "pom.xml"
+  env.POM_FILE = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/pom.xml" : "pom.xml"
   env.TARGET = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/target" : "target"
   env.APP_NAME = "${env.JOB_NAME}".replaceAll(/-build.*/, '')
   env.BUILD = "${env.NAMESPACE}"
@@ -37,9 +37,9 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          version = getVersionFromPom(env.POMFILE)
-          def artifactId = getArtifactIdFromPom(env.POMFILE)
-          def groupId = getGroupIdFromPom(env.POMFILE)
+          version = getVersionFromPom(env.POM_FILE)
+          def artifactId = getArtifactIdFromPom(env.POM_FILE)
+          def groupId = getGroupIdFromPom(env.POM_FILE)
           println("Artifact ID: ${artifactId}, Group ID: ${groupId}")
           println("New version tag: ${version}")
         }

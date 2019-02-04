@@ -8,13 +8,14 @@ retriever: modernSCM(
 
 def currentState = 'green'
 def newState = 'blue'
-def pom_file = ''
 def version = ''
 
 openshift.withCluster() {
+  env.NAMESPACE = openshift.project()
+  env.POMFILE = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/pom.xml" : "pom.xml"
   env.TARGET = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/target" : "target"
-  env.APP_NAME = "${JOB_NAME}".replaceAll(/-build.*/, '')
-  env.BUILD = openshift.project()
+  env.APP_NAME = "${env.JOB_NAME}".replaceAll(/-build.*/, '')
+  env.BUILD = "${env.NAMESPACE}"
   env.DEV = "${APP_NAME}-dev"
   env.STAGE = "${APP_NAME}-stage"
   env.PROD = "${APP_NAME}-prod"
@@ -33,22 +34,16 @@ pipeline {
       }
     }
 
-    stage('pom information') {
+    stage('Build') {
       steps {
         script {
-          pom_file = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/pom.xml" : "pom.xml"
-          version = getVersionFromPom(pom_file)
-          def artifactId = getArtifactIdFromPom(pom_file)
-          def groupId = getGroupIdFromPom(pom_file)
+          version = getVersionFromPom(env.POMFILE)
+          def artifactId = getArtifactIdFromPom(env.POMFILE)
+          def groupId = getGroupIdFromPom(env.POMFILE)
           println("Artifact ID: ${artifactId}, Group ID: ${groupId}")
           println("New version tag: ${version}")
         }
-      }
-		}
-    
-    stage('Build') {
-      steps {
-        sh "mvn -B clean install -DskipTests=true -f ${pom_file}"
+        sh "mvn -B clean install -DskipTests=true -f ${POM_FILE}"
       }
     }
 
@@ -159,13 +154,13 @@ pipeline {
         tagImage(sourceImageName: APP_NAME, sourceImagePath: DEV, toImagePath: PROD, toImageName: "${APP_NAME}-${newState}", toImageTag: version)
       }
     }
-    
+
     stage('Verify Deployment to Prod') {
       steps {
         verifyDeployment(projectName: PROD, targetApp: "${APP_NAME}-${newState}")
       }
     }
-    
+
     stage('Switch route to new version') {
       steps {
         script {
